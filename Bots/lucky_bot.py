@@ -26,7 +26,7 @@ def get_random_number() -> int:
 
 # Этот хэндлер будет срабатывать на команду '/start'
 @dp.message(CommandStart())
-async def process_start_command(message: Massage):
+async def process_start_command(message: Message):
    await message.answer(
        'Привет!\nДавайте сыграем в игру "Угадай число"?\n\n'
         'Чтобы получить правила игры и список доступных '
@@ -86,7 +86,7 @@ async def process_positive_answer(message: Message):
         )
 
 # Этот хэндлер будет срабатывать на отказ пользователя сыграть в игру
-@dp.message(F.text.lower().in(['нет', 'не', 'не хочу', 'не буду']))
+@dp.message(F.text.lower().in_(['нет', 'не', 'не хочу', 'не буду']))
 async def process_negative_answer(message: Message):
     if not user['in_game']:
         await message.answer(
