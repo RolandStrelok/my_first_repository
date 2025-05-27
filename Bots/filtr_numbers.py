@@ -1,34 +1,66 @@
 from aiogram import Bot, Dispatcher
-from aiogram.filters import BaseFilter
-from aiogram.types import Message
+from aiogram.filters import CommandStart
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram import F
+from aiogram.types import CallbackQuery
 
+# Вместо BOT TOKEN HERE нужно вставить токен вашего бота,
+# полученный у @BotFather
 BOT_TOKEN = ''
 
 # Создаем объекты бота и диспетчера
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Список с ID администраторов бота
-admin_ids: list[int] = [846439894]
+# Создаем объекты инлайн-кнопок
+big_button_1 = InlineKeyboardButton(
+    text='БОЛЬШАЯ КНОПКА 1',
+    callback_data='big_button_1_pressed'
+)
 
-# Собственный фильтр, проверяющий юзера на админа
-class IsAdmin(BaseFilter):
-    def __init__(self, admin_ids: list[int]) -> None:
-        # В качестве параметра фильтр принимает список с целыми числами
-        self.admin_ids = admin_ids
+big_button_2 = InlineKeyboardButton(
+    text='БОЛЬШАЯ КНОПКА 2',
+    callback_data='big_button_2_pressed'
+)
 
-    async def __call__(self, message: Message) -> bool:
-        return message.from_user.id in self.admin_ids
+# Создаем объект инлайн-клавиатуры
+keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[[big_button_1],
+                     [big_button_2]]
+)
 
-# Этот хэндлер будет срабатывать, если апдейт от админа
-@dp.message(IsAdmin(admin_ids))
-async def answer_if_admins_update(message: Message):
-    await message.answer(text='Вы админ')
 
-# Этот хэндлер будет срабатывать, если апдейт не от админа
-@dp.message()
-async def answer_if_not_admins_update(message: Message):
-    await message.answer(text='Вы не админ')
+# Этот хэндлер будет срабатывать на команду "/start"
+# и отправлять в чат клавиатуру с инлайн-кнопками
+@dp.message(CommandStart())
+async def process_start_command(message: Message):
+    await message.answer(
+        text='Это инлайн-кнопки. Нажми на любую!',
+        reply_markup=keyboard
+)
+    
+# Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
+# с data 'big_button_1_pressed'
+@dp.callback_query(F.data == 'big_button_1_pressed')
+async def process_button_1_press(callback: CallbackQuery):
+    if callback.message.text != 'Была нажата БОЛЬШАЯ КНОПКА 1':
+        await callback.message.edit_text(
+            text='Была нажата БОЛЬШАЯ КНОПКА 1',
+            reply_markup=callback.message.reply_markup
+        )
+    await callback.answer()
+
+
+# Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
+# с data 'big_button_2_pressed'
+@dp.callback_query(F.data == 'big_button_2_pressed')
+async def process_button_2_press(callback: CallbackQuery):
+    if callback.message.text != 'Была нажата БОЛЬШАЯ КНОПКА 2':
+        await callback.message.edit_text(
+            text='Была нажата БОЛЬШАЯ КНОПКА 2',
+            reply_markup=callback.message.reply_markup
+        )
+    await callback.answer()    
 
 
 if __name__ == '__main__':
